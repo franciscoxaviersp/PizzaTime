@@ -147,12 +147,22 @@ class _MyAppState extends State<MyApp> {
                 _chosenPlace.geometry?.coordinates![1] as double;
             double target_long =
                 _chosenPlace.geometry?.coordinates![0] as double;
-
+            /*
+            my_lat = 40.4688500;
+            my_long = -8.7269200;
+            target_lat = 40.45687;
+            target_long = -8.72692;*/
             print("My lat: $my_lat");
             print("My long: $my_long");
             print("Target lat: $target_lat");
             print("Target long: $target_long");
             print(_chosenPlace);
+
+            my_lat = my_lat * math.pi / 180;
+            my_long = my_long * math.pi / 180;
+            target_lat = target_lat * math.pi / 180;
+            target_long = target_long * math.pi / 180;
+
             // if direction is null, then device does not support this sensor
             // show error message
             if (direction == null || _chosenPlace == null) {
@@ -167,6 +177,20 @@ class _MyAppState extends State<MyApp> {
             var bearing;
             var temp;
 
+            var dLon = target_long - my_long;
+
+            bearing = math.atan2(
+                math.sin(dLon) * math.cos(target_lat),
+                math.cos(my_lat) * math.sin(target_lat) -
+                    math.sin(my_lat) * math.cos(target_lat) * math.cos(dLon));
+
+            bearing = bearing * math.pi / 180;
+            bearing = Geolocator.bearingBetween(
+                my_lat, my_long, target_lat, target_long);
+            /*if (bearing < 0) {
+              bearing = 360 + bearing;
+            }*/
+/*
             bearing = math.acos(
                 (((my_lat + 1) - my_lat) * (target_lat - my_lat)) /
                     (math.sqrt(0 + math.pow(((my_lat + 1) - my_lat), 2)) *
@@ -175,16 +199,19 @@ class _MyAppState extends State<MyApp> {
             bearing = ((bearing * 180) / math.pi);
 
             if (target_long < my_long) {
-              bearing = -bearing + 360;
-            }
+              bearing = -bearing;
+            }*/
             print("Direction: $direction");
             print("Bearing: $bearing");
             temp = direction;
+            /*
             temp = direction + bearing + 90;
             if ((target_lat > my_lat && target_long > my_long) ||
                 (target_lat < my_lat && target_long < my_long)) {
               temp -= 180;
-            }
+            }*/
+
+            temp = bearing - direction;
 
             return Material(
               shape: const CircleBorder(),
@@ -197,7 +224,7 @@ class _MyAppState extends State<MyApp> {
                   shape: BoxShape.circle,
                 ),
                 child: Transform.rotate(
-                  angle: ((temp) * (math.pi / 180) * -1),
+                  angle: (((temp * math.pi) / 180)),
                   child: Image.asset('assets/arrow.png'),
                 ),
               ),
