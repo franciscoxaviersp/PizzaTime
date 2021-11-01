@@ -49,13 +49,13 @@ class _MyAppState extends State<MyApp> {
               home: Scaffold(
                 backgroundColor: Colors.white,
                 appBar: AppBar(
-                  title: const Text('Flutter Compass'),
+                  title: const Text('Pizza Time'),
                 ),
                 body: Builder(builder: (context) {
                   if (_hasPermissions) {
                     return Column(
                       children: <Widget>[
-                        _buildManualReader(),
+                        //_buildManualReader(),
                         Expanded(child: _buildCompass()),
                       ],
                     );
@@ -66,10 +66,16 @@ class _MyAppState extends State<MyApp> {
               ),
             );
           } else {
-            return const MaterialApp(home: Text("Error"));
+            return const MaterialApp(
+                home: Center(
+              child: CircularProgressIndicator(),
+            ));
           }
         }
-        return const MaterialApp(home: Text("Wait"));
+        return const MaterialApp(
+            home: Center(
+          child: CircularProgressIndicator(),
+        ));
       },
     );
   }
@@ -158,6 +164,12 @@ class _MyAppState extends State<MyApp> {
             print("Target long: $target_long");
             print(_chosenPlace);
 
+            var _distance = GeolocatorPlatform.instance
+                    .distanceBetween(my_lat, my_long, target_lat, target_long)
+                    .toInt()
+                    .toString() +
+                " m";
+
             my_lat = my_lat * math.pi / 180;
             my_long = my_long * math.pi / 180;
             target_lat = target_lat * math.pi / 180;
@@ -177,58 +189,55 @@ class _MyAppState extends State<MyApp> {
             var bearing;
             var temp;
 
-            var dLon = target_long - my_long;
-
-            bearing = math.atan2(
-                math.sin(dLon) * math.cos(target_lat),
-                math.cos(my_lat) * math.sin(target_lat) -
-                    math.sin(my_lat) * math.cos(target_lat) * math.cos(dLon));
-
-            bearing = bearing * math.pi / 180;
             bearing = Geolocator.bearingBetween(
                 my_lat, my_long, target_lat, target_long);
-            /*if (bearing < 0) {
-              bearing = 360 + bearing;
-            }*/
-/*
-            bearing = math.acos(
-                (((my_lat + 1) - my_lat) * (target_lat - my_lat)) /
-                    (math.sqrt(0 + math.pow(((my_lat + 1) - my_lat), 2)) *
-                        math.sqrt(math.pow(target_long - my_long, 2) +
-                            math.pow((my_lat + 1) - my_lat, 2))));
-            bearing = ((bearing * 180) / math.pi);
-
-            if (target_long < my_long) {
-              bearing = -bearing;
-            }*/
             print("Direction: $direction");
             print("Bearing: $bearing");
             temp = direction;
-            /*
-            temp = direction + bearing + 90;
-            if ((target_lat > my_lat && target_long > my_long) ||
-                (target_lat < my_lat && target_long < my_long)) {
-              temp -= 180;
-            }*/
-
             temp = bearing - direction;
 
-            return Material(
-              shape: const CircleBorder(),
-              clipBehavior: Clip.antiAlias,
-              elevation: 4.0,
-              child: Container(
-                padding: const EdgeInsets.all(16.0),
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                ),
-                child: Transform.rotate(
-                  angle: (((temp * math.pi) / 180)),
-                  child: Image.asset('assets/arrow.png'),
-                ),
+            return Column(children: [
+              Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 40, 20, 0),
+                    child: Text(
+                      _chosenPlace.toString(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 30,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 60),
+                    child: Text(
+                      _distance,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 50,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            );
+              Material(
+                shape: const CircleBorder(),
+                clipBehavior: Clip.antiAlias,
+                elevation: 4.0,
+                child: Container(
+                  padding: const EdgeInsets.all(16.0),
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                  ),
+                  child: Transform.rotate(
+                    angle: (((temp * math.pi) / 180)),
+                    child: Image.asset('assets/arrow.png'),
+                  ),
+                ),
+              )
+            ]);
           },
         );
       },
