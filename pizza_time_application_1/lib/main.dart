@@ -10,6 +10,7 @@ import 'package:permission_handler/permission_handler.dart';
 //import 'package:google_maps_webservice/places.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mapbox_search/mapbox_search.dart';
+import 'package:wearable_communicator/wearable_communicator.dart';
 
 void main() => runApp(MyApp());
 
@@ -28,10 +29,16 @@ class _MyAppState extends State<MyApp> {
   DateTime? _lastReadAt;
   List<MapBoxPlace> _places = [];
   late MapBoxPlace _chosenPlace;
+  String hr = "";
 
   @override
   void initState() {
     super.initState();
+
+    WearableListener.listenForMessage((msg) {
+      hr = msg;
+      print(hr);
+    });
 
     _fetchPermissionStatus();
   }
