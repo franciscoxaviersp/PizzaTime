@@ -33,6 +33,8 @@ dependencies:
   geolocator: ^7.7.1
   cupertino_icons: ^1.0.2
   mapbox_search: ^3.0.1+1
+  flutter_tts: ^3.2.2
+  number_to_words: ^1.0.0
   flutter:
     sdk: flutter
   provider: ^6.0.1

@@ -11,6 +11,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mapbox_search/mapbox_search.dart';
 import 'package:wearable_communicator/wearable_communicator.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:number_to_words/number_to_words.dart';
 
 void main() => runApp(MyApp());
 
@@ -30,6 +32,11 @@ class _MyAppState extends State<MyApp> {
   List<MapBoxPlace> _places = [];
   late MapBoxPlace _chosenPlace;
   String hr = "";
+  int counter = 0;
+  final FlutterTts tts = FlutterTts();
+
+  var last = DateTime.now();
+  var now = DateTime.now();
 
   @override
   void initState() {
@@ -41,6 +48,8 @@ class _MyAppState extends State<MyApp> {
     });
 
     _fetchPermissionStatus();
+    tts.setLanguage('it');
+    tts.setSpeechRate(0.6);
   }
 
   @override
@@ -164,18 +173,27 @@ class _MyAppState extends State<MyApp> {
             my_lat = 40.4688500;
             my_long = -8.7269200;
             target_lat = 40.45687;
-            target_long = -8.72692;*/
+            target_long = -8.72692;*/ /*
             print("My lat: $my_lat");
             print("My long: $my_long");
             print("Target lat: $target_lat");
             print("Target long: $target_long");
-            print(_chosenPlace);
-
+            print(_chosenPlace);*/
             var _distance = GeolocatorPlatform.instance
-                    .distanceBetween(my_lat, my_long, target_lat, target_long)
-                    .toInt()
-                    .toString() +
-                " m";
+                .distanceBetween(my_lat, my_long, target_lat, target_long)
+                .toInt();
+
+            var _distanceStr = _distance.toString() + " m";
+            now = DateTime.now();
+
+            //print(now.difference(last).inSeconds);
+            if (now.difference(last).inSeconds >= 10) {
+              print("AAAAAAAAAAAAAAAAAAAAA");
+              last = now;
+              tts.speak(NumberToWord().convert('en-in', _distance) +
+                  " meters left to " +
+                  _chosenPlace.toString());
+            }
 
             my_lat = my_lat * math.pi / 180;
             my_long = my_long * math.pi / 180;
@@ -198,8 +216,9 @@ class _MyAppState extends State<MyApp> {
 
             bearing = Geolocator.bearingBetween(
                 my_lat, my_long, target_lat, target_long);
+            /*
             print("Direction: $direction");
-            print("Bearing: $bearing");
+            print("Bearing: $bearing");*/
             temp = direction;
             temp = bearing - direction;
 
@@ -219,7 +238,7 @@ class _MyAppState extends State<MyApp> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 60),
                     child: Text(
-                      _distance,
+                      _distanceStr,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 50,
