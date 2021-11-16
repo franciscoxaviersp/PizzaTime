@@ -27,8 +27,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool _hasPermissions = false;
-  CompassEvent? _lastRead;
-  DateTime? _lastReadAt;
   List<MapBoxPlace> _places = [];
   late MapBoxPlace _chosenPlace;
   String hr = "";
@@ -61,6 +59,7 @@ class _MyAppState extends State<MyApp> {
           if (snapshot.hasData) {
             _places = snapshot.data as List<MapBoxPlace>;
             _chosenPlace = _chooseRandomPlace();
+
             return MaterialApp(
               home: Scaffold(
                 backgroundColor: Colors.white,
@@ -71,8 +70,9 @@ class _MyAppState extends State<MyApp> {
                   if (_hasPermissions) {
                     return Column(
                       children: <Widget>[
-                        //_buildManualReader(),
-                        Expanded(child: _buildCompass()),
+                        Expanded(
+                            child: _buildCompass(
+                                MediaQuery.of(context).orientation)),
                       ],
                     );
                   } else {
@@ -96,45 +96,7 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  Widget _buildManualReader() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        children: <Widget>[
-          ElevatedButton(
-            child: const Text('Read Value'),
-            onPressed: () async {
-              final CompassEvent tmp = await FlutterCompass.events!.first;
-              setState(() {
-                _lastRead = tmp;
-                _lastReadAt = DateTime.now();
-              });
-            },
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    '$_lastRead',
-                    style: Theme.of(context).textTheme.caption,
-                  ),
-                  Text(
-                    '$_lastReadAt',
-                    style: Theme.of(context).textTheme.caption,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCompass() {
+  Widget _buildCompass(Orientation orientation) {
     return StreamBuilder<CompassEvent>(
       stream: FlutterCompass.events,
       builder: (context1, snapshot1) {
@@ -188,7 +150,6 @@ class _MyAppState extends State<MyApp> {
 
             //print(now.difference(last).inSeconds);
             if (now.difference(last).inSeconds >= 10) {
-              print("AAAAAAAAAAAAAAAAAAAAA");
               last = now;
               tts.speak(NumberToWord().convert('en-in', _distance) +
                   " meters left to " +
@@ -222,48 +183,189 @@ class _MyAppState extends State<MyApp> {
             temp = direction;
             temp = bearing - direction;
 
-            return Column(children: [
-              Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 40, 20, 0),
-                    child: Text(
-                      _chosenPlace.toString(),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 30,
+            if (orientation == Orientation.landscape) {
+              return Row(children: [
+                int.tryParse(hr) != null
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 20, 50, 0),
+                            child: Text(
+                              _chosenPlace.toString(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 25,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 50, 60),
+                            child: Text(
+                              _distanceStr,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 35,
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 20, 50, 0),
+                            child: Text(
+                              _chosenPlace.toString(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 40,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 50, 60),
+                            child: Text(
+                              _distanceStr,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 50,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 60),
-                    child: Text(
-                      _distanceStr,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 50,
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Material(
+                        shape: const CircleBorder(),
+                        clipBehavior: Clip.antiAlias,
+                        elevation: 4.0,
+                        child: Container(
+                          padding: const EdgeInsets.all(30.0),
+                          alignment: Alignment.center,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                          ),
+                          child: Transform.rotate(
+                            angle: (((temp * math.pi) / 180)),
+                            child: Image.asset('assets/arrow.png'),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ],
-              ),
-              Material(
-                shape: const CircleBorder(),
-                clipBehavior: Clip.antiAlias,
-                elevation: 4.0,
-                child: Container(
-                  padding: const EdgeInsets.all(16.0),
-                  alignment: Alignment.center,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                  ),
-                  child: Transform.rotate(
-                    angle: (((temp * math.pi) / 180)),
-                    child: Image.asset('assets/arrow.png'),
+                    ],
                   ),
                 ),
-              )
-            ]);
+                int.tryParse(hr) != null
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Padding(
+                              padding: const EdgeInsets.fromLTRB(50, 0, 10, 10),
+                              child: Row(children: [
+                                Text(
+                                  hr + " bpm  ",
+                                  //"100 bpm",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.favorite,
+                                  color: Colors.red,
+                                  size: 30,
+                                )
+                              ]))
+                        ],
+                      )
+                    : const Text(""),
+              ]);
+            } else {
+              return Column(children: [
+                Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 40, 20, 0),
+                      child: Text(
+                        _chosenPlace.toString(),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 30,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 60),
+                      child: Text(
+                        _distanceStr,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 50,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Material(
+                            shape: const CircleBorder(),
+                            clipBehavior: Clip.antiAlias,
+                            elevation: 4.0,
+                            child: Container(
+                              padding: const EdgeInsets.all(16.0),
+                              alignment: Alignment.center,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                              ),
+                              child: Transform.rotate(
+                                angle: (((temp * math.pi) / 180)),
+                                child: Image.asset('assets/arrow.png'),
+                              ),
+                            ),
+                          )
+                        ])),
+                int.tryParse(hr) != null
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Padding(
+                              padding:
+                                  const EdgeInsets.fromLTRB(50, 50, 30, 10),
+                              child: Row(children: [
+                                Text(
+                                  hr + " bpm  ",
+                                  //"100 bpm",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.favorite,
+                                  color: Colors.red,
+                                  size: 30,
+                                )
+                              ]))
+                        ],
+                      )
+                    : const Text(""),
+              ]);
+            }
           },
         );
       },
