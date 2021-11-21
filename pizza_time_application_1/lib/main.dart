@@ -64,7 +64,14 @@ class _MyAppState extends State<MyApp> {
               home: Scaffold(
                 backgroundColor: Colors.white,
                 appBar: AppBar(
-                  title: const Text('Pizza Time'),
+                  backgroundColor: Colors.white,
+                  title: const Text(
+                    'Pizza Time',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 25,
+                        color: Colors.black),
+                  ),
                 ),
                 body: Builder(builder: (context) {
                   if (_hasPermissions) {
@@ -252,7 +259,10 @@ class _MyAppState extends State<MyApp> {
                           padding: const EdgeInsets.all(30.0),
                           alignment: Alignment.center,
                           decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
+                            image: DecorationImage(
+                              image: AssetImage('assets/pizza.png'),
+                            ),
+                            //shape: BoxShape.circle,
                           ),
                           child: Transform.rotate(
                             angle: (((temp * math.pi) / 180)),
@@ -329,7 +339,10 @@ class _MyAppState extends State<MyApp> {
                               padding: const EdgeInsets.all(16.0),
                               alignment: Alignment.center,
                               decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
+                                image: DecorationImage(
+                                  image: AssetImage('assets/pizza.png'),
+                                ),
+                                //shape: BoxShape.circle,
                               ),
                               child: Transform.rotate(
                                 angle: (((temp * math.pi) / 180)),
@@ -421,7 +434,6 @@ class _MyAppState extends State<MyApp> {
       country: "PT",
       limit: 5,
     );
-
     List<MapBoxPlace> places = await placesService.getPlaces(
       "pizzaria",
       /* test fixed on Aveiro
@@ -434,7 +446,6 @@ class _MyAppState extends State<MyApp> {
         lng: _position.longitude,
       ),
     ) as List<MapBoxPlace>;
-
     //print(places);
 
     for (var i = 0; i < places.length; i++) {
