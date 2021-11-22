@@ -633,6 +633,21 @@ class _favoritesPage extends State<favoritesPage> {
     return favorites;
   }
 
+  _boilerplate(String _chosenPlace) async {
+    await _removeFromFavorites(_chosenPlace);
+  }
+
+  _removeFromFavorites(_chosenPlace) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String key = 'favorites';
+    final String value = _chosenPlace;
+    final List<String> favorites = (prefs.getStringList(key) ?? <String>[]);
+    if (favorites.contains(value)) {
+      favorites.remove(value);
+      prefs.setStringList(key, favorites);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -657,7 +672,16 @@ class _favoritesPage extends State<favoritesPage> {
                     itemCount: snapshot.data!.length,
                     itemBuilder: (context, index) {
                       return ListTile(
-                        title: Text(snapshot.data![index]),
+                        title: Text(
+                          snapshot.data![index],
+                        ),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            _boilerplate(snapshot.data![index]);
+                            setState(() {});
+                          },
+                        ),
                       );
                     },
                   );
