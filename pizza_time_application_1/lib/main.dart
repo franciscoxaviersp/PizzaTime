@@ -533,7 +533,7 @@ class _GenerateQRPageState extends State<GenerateQRPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               QrImage(
-                data: widget.hr,
+                data: (int.parse(widget.hr) * 0.1).toString(),
                 size: 300,
                 gapless: true,
                 embeddedImage: AssetImage('assets/pizza.png'),
