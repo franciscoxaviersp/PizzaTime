@@ -13,6 +13,7 @@ import 'package:mapbox_search/mapbox_search.dart';
 import 'package:wearable_communicator/wearable_communicator.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:number_to_words/number_to_words.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 void main() => runApp(MyApp());
 
@@ -32,6 +33,8 @@ class _MyAppState extends State<MyApp> {
   String hr = "";
   int counter = 0;
   final FlutterTts tts = FlutterTts();
+  bool first_message = true;
+  int max_hr = 0;
 
   var last = DateTime.now();
   var now = DateTime.now();
@@ -41,8 +44,12 @@ class _MyAppState extends State<MyApp> {
     super.initState();
 
     WearableListener.listenForMessage((msg) {
-      hr = msg;
-      print(hr);
+      int temp = int.parse(msg);
+      hr = "$temp";
+      if (max_hr < temp) {
+        max_hr = temp;
+      }
+      print(max_hr);
     });
 
     _fetchPermissionStatus();
@@ -76,10 +83,39 @@ class _MyAppState extends State<MyApp> {
                 body: Builder(builder: (context) {
                   if (_hasPermissions) {
                     return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
                         Expanded(
                             child: _buildCompass(
                                 MediaQuery.of(context).orientation)),
+                        Container(
+                            color: Colors.white,
+                            alignment: Alignment.center,
+                            padding: EdgeInsets.only(bottom: 20),
+                            child: Column(children: [
+                              Material(
+                                  color: Colors.white,
+                                  child: Container(
+                                      alignment: Alignment.center,
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          alignment: Alignment.center,
+                                          fixedSize: const Size(75, 75),
+                                          shape: const CircleBorder(),
+                                        ),
+                                        child: Icon(Icons.qr_code_2, size: 45),
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  GenerateQRPage(hr: "$max_hr"),
+                                            ),
+                                          );
+                                        },
+                                      )))
+                            ]))
                       ],
                     );
                   } else {
@@ -466,5 +502,73 @@ class _MyAppState extends State<MyApp> {
         setState(() => _hasPermissions = status == PermissionStatus.granted);
       }
     });
+  }
+}
+
+class GenerateQRPage extends StatefulWidget {
+  final String hr;
+  const GenerateQRPage({Key? key, required this.hr}) : super(key: key);
+
+  @override
+  _GenerateQRPageState createState() => _GenerateQRPageState();
+}
+
+class _GenerateQRPageState extends State<GenerateQRPage> {
+  TextEditingController controller = TextEditingController();
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: const Text(
+          'Discount Code',
+          style: TextStyle(
+              fontWeight: FontWeight.bold, fontSize: 25, color: Colors.black),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(50.0),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              QrImage(
+                data: widget.hr,
+                size: 300,
+                gapless: true,
+                embeddedImage: AssetImage('assets/pizza.png'),
+                embeddedImageStyle: QrEmbeddedImageStyle(size: Size(80, 80)),
+              ),
+              Container(
+                padding: const EdgeInsets.only(top: 10),
+                child: const Text(
+                  "Your Maximum Heart Rate was: ",
+                  style: TextStyle(fontSize: 20),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  widget.hr,
+                  style: TextStyle(fontSize: 30),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  "Discount: " + (int.parse(widget.hr) * 0.1).toString() + "%",
+                  style: TextStyle(fontSize: 30),
+                ),
+              ),
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text('Go Back')),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

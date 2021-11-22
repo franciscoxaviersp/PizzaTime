@@ -41,6 +41,7 @@ dependencies:
   location: ^4.3.0
   wearable_communicator:
     path: ../../wearable_communicator
+  qr_flutter: ^4.0.0
 
 
   # The following adds the Cupertino Icons font to your application.
