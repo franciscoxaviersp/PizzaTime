@@ -14,6 +14,7 @@ import 'package:wearable_communicator/wearable_communicator.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:number_to_words/number_to_words.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(MyApp());
 
@@ -83,39 +84,65 @@ class _MyAppState extends State<MyApp> {
                 body: Builder(builder: (context) {
                   if (_hasPermissions) {
                     return Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
                         Expanded(
                             child: _buildCompass(
                                 MediaQuery.of(context).orientation)),
                         Container(
                             color: Colors.white,
-                            alignment: Alignment.center,
-                            padding: EdgeInsets.only(bottom: 20),
-                            child: Column(children: [
-                              Material(
-                                  color: Colors.white,
-                                  child: Container(
-                                      alignment: Alignment.center,
-                                      child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.only(bottom: 10),
+                            child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Material(
+                                      color: Colors.white,
+                                      child: Container(
+                                          padding: EdgeInsets.all(10),
                                           alignment: Alignment.center,
-                                          fixedSize: const Size(75, 75),
-                                          shape: const CircleBorder(),
-                                        ),
-                                        child: Icon(Icons.qr_code_2, size: 45),
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  GenerateQRPage(hr: "$max_hr"),
+                                          child: ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              alignment: Alignment.center,
+                                              fixedSize: const Size(75, 75),
+                                              shape: const CircleBorder(),
                                             ),
-                                          );
-                                        },
-                                      )))
-                            ]))
+                                            child:
+                                                Icon(Icons.qr_code_2, size: 45),
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      GenerateQRPage(
+                                                          hr: "$max_hr"),
+                                                ),
+                                              );
+                                            },
+                                          ))),
+                                  Material(
+                                      child: Container(
+                                          color: Colors.white,
+                                          padding: EdgeInsets.only(left: 20),
+                                          child: ElevatedButton(
+                                            child: Icon(
+                                                Icons.star_border_outlined,
+                                                size: 45),
+                                            style: ElevatedButton.styleFrom(
+                                                alignment: Alignment.center,
+                                                fixedSize: const Size(75, 75),
+                                                shape: const CircleBorder()),
+                                            onPressed: () {
+                                              _boilerplate();
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      favoritesPage(),
+                                                ),
+                                              );
+                                            },
+                                          )))
+                                ])),
                       ],
                     );
                   } else {
@@ -239,7 +266,7 @@ class _MyAppState extends State<MyApp> {
                               _chosenPlace.toString(),
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 25,
+                                fontSize: 10,
                               ),
                             ),
                           ),
@@ -249,7 +276,7 @@ class _MyAppState extends State<MyApp> {
                               _distanceStr,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 35,
+                                fontSize: 20,
                               ),
                             ),
                           ),
@@ -265,7 +292,7 @@ class _MyAppState extends State<MyApp> {
                               _chosenPlace.toString(),
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 40,
+                                fontSize: 25,
                               ),
                             ),
                           ),
@@ -275,7 +302,7 @@ class _MyAppState extends State<MyApp> {
                               _distanceStr,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 50,
+                                fontSize: 25,
                               ),
                             ),
                           ),
@@ -315,7 +342,7 @@ class _MyAppState extends State<MyApp> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Padding(
-                              padding: const EdgeInsets.fromLTRB(50, 0, 10, 10),
+                              padding: const EdgeInsets.fromLTRB(50, 0, 10, 0),
                               child: Row(children: [
                                 Text(
                                   hr + " bpm  ",
@@ -449,6 +476,21 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
+  _boilerplate() async {
+    await _addToFavorites();
+  }
+
+  _addToFavorites() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String key = 'favorites';
+    final String value = _chosenPlace.toString();
+    final List<String> favorites = (prefs.getStringList(key) ?? <String>[]);
+    if (!favorites.contains(value)) {
+      favorites.add(value);
+      prefs.setStringList(key, favorites);
+    }
+  }
+
   Future<List<MapBoxPlace>> _getLocationAndRestaurant() async {
     var _position = await Geolocator.getCurrentPosition();
 
@@ -569,6 +611,75 @@ class _GenerateQRPageState extends State<GenerateQRPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class favoritesPage extends StatefulWidget {
+  const favoritesPage({Key? key}) : super(key: key);
+
+  @override
+  _favoritesPage createState() => _favoritesPage();
+}
+
+class _favoritesPage extends State<favoritesPage> {
+  TextEditingController controller = TextEditingController();
+
+  Future<List<String>> _getFavorites() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String key = 'favorites';
+    final List<String> favorites = (prefs.getStringList(key) ?? <String>[]);
+    print(favorites);
+    return favorites;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: const Text(
+          'Favorites',
+          style: TextStyle(
+              fontWeight: FontWeight.bold, fontSize: 25, color: Colors.black),
+        ),
+      ),
+      body: SingleChildScrollView(
+          child: Column(
+        children: [
+          SizedBox(
+            height: 450,
+            child: FutureBuilder<List<String>>(
+              future: _getFavorites(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return ListView.builder(
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text(snapshot.data![index]),
+                      );
+                    },
+                  );
+                } else {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+              },
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(20),
+            child: ElevatedButton(
+              child: const Text("Go Back"),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ),
+        ],
+      )),
     );
   }
 }
